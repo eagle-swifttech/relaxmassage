@@ -1,0 +1,117 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // เชื่อมกับ URL จาก .env
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./node_modules/@prisma/client"
+}
+
+enum BranchStatus {
+  OPEN
+  CLOSED
+  MAINTENANCE
+}
+
+model Company {
+  com_id        Int      @id @default(autoincrement())
+  com_name      String
+  com_description String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  branches      Branch[]
+  inventory     Inventory[]
+  investments   Investment[]
+}
+
+model Branch {
+  bh_id         Int      @id @default(autoincrement())
+  bh_name       String
+  bh_address    String?
+  bh_phone      String?
+  bh_status BranchStatus  @default(OPEN)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  company       Company  @relation(fields: [company_id], references: [com_id])
+  company_id    Int
+  inventory     Inventory[]
+  investments   Investment[]
+}
+
+model Departments {
+  dep_id        Int      @id @default(autoincrement())
+  dep_en_name   String
+  dep_th_name   String
+  dep_short_name String
+  description   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  employees     Employee[]
+}
+
+model Employee {
+  emp_id        Int      @id @default(autoincrement())
+  emp_name      String
+  emp_email     String   @unique
+  emp_password  String
+  emp_phone     String?
+  emp_bd        DateTime?
+  emp_gender    String?
+  emp_img       String?
+  position      String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  department    Departments? @relation(fields: [dep_id], references: [dep_id])
+  dep_id        Int?
+}
+
+model CategoryInventory {
+  civt_id       Int      @id @default(autoincrement())
+  civt_name     String
+  civt_description String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  inventories   Inventory[]
+}
+
+model Inventory {
+  ivt_id        Int      @id @default(autoincrement())
+  ivt_name      String
+  ivt_quantity  Int      @default(0)
+  ivt_purchase_date DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  company       Company  @relation(fields: [company_id], references: [com_id])
+  company_id    Int
+  branch        Branch   @relation(fields: [branch_id], references: [bh_id])
+  branch_id     Int
+  category      CategoryInventory @relation(fields: [civt_id], references: [civt_id])
+  civt_id       Int
+}
+
+model CategoryInvestment {
+  civm_id       Int      @id @default(autoincrement())
+  civm_name     String
+  civm_description String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  investments   Investment[]
+}
+
+model Investment {
+  ivm_id        Int      @id @default(autoincrement())
+  ivm_name      String
+  ivm_amount    Float
+  ivm_investment_date DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  company       Company  @relation(fields: [company_id], references: [com_id])
+  company_id    Int
+  branch        Branch   @relation(fields: [branch_id], references: [bh_id])
+  branch_id     Int
+  category      CategoryInvestment @relation(fields: [civm_id], references: [civm_id])
+  civm_id       Int
+}
